@@ -10,6 +10,14 @@ resource "aws_instance" "datasync_test_server" {
   subnet_id              = data.aws_subnet.private.id
   vpc_security_group_ids = [data.aws_security_group.private_compute.id]
 
+  metadata_options {
+    http_tokens = "required" # enforce IMDSv2
+  }
+
+  root_block_device {
+    encrypted = true
+  }
+
   tags = merge(var.tags, {
     Name = "datasync-test-server"
   })

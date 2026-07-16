@@ -1,5 +1,8 @@
 # Part 4/8: task execution logging + failure alarm
 
+#tfsec:ignore:aws-cloudwatch-log-group-customer-key -- holds only DataSync transfer
+#  metadata (file names/sizes/timestamps) for a teaching lab, not sensitive data; a
+#  dedicated CMK adds a recurring ~$1/month charge that isn't proportionate here.
 resource "aws_cloudwatch_log_group" "datasync_task" {
   name              = "/aws/datasync/raw-to-processed-sync"
   retention_in_days = 30
@@ -31,6 +34,9 @@ resource "aws_cloudwatch_log_resource_policy" "datasync" {
 }
 
 # Part 8: SNS topic + alarm on TaskExecutionsFailed
+#tfsec:ignore:aws-sns-topic-encryption-use-cmk -- notification payloads are just alarm
+#  state text (task ARN, alarm name), not sensitive data; a dedicated CMK adds a
+#  recurring ~$1/month charge that isn't proportionate here.
 resource "aws_sns_topic" "datasync_notifications" {
   name = "datasync-notifications"
   tags = var.tags
