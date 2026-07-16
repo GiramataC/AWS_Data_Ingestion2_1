@@ -18,6 +18,11 @@ resource "aws_iam_role" "datasync_s3" {
   tags               = var.tags
 }
 
+# Object-level S3 actions require a prefix wildcard - there's no non-wildcard way
+# to grant access to "objects under this key prefix". Scoped to raw/* (read-only)
+# and processed/* (read-write) rather than the whole bucket, which is the actual
+# least-privilege boundary achievable here.
+#tfsec:ignore:aws-iam-no-policy-wildcards
 data "aws_iam_policy_document" "datasync_s3_access" {
   statement {
     sid    = "BucketLevelAccess"
@@ -31,7 +36,17 @@ data "aws_iam_policy_document" "datasync_s3_access" {
   }
 
   statement {
-    sid    = "ObjectLevelAccess"
+    sid    = "SourceReadAccess"
+    effect = "Allow"
+    actions = [
+      "s3:GetObject",
+      "s3:GetObjectTagging",
+    ]
+    resources = ["${aws_s3_bucket.data_lake.arn}/${var.raw_prefix}*"]
+  }
+
+  statement {
+    sid    = "DestinationWriteAccess"
     effect = "Allow"
     actions = [
       "s3:AbortMultipartUpload",
@@ -42,7 +57,7 @@ data "aws_iam_policy_document" "datasync_s3_access" {
       "s3:PutObject",
       "s3:PutObjectTagging",
     ]
-    resources = ["${aws_s3_bucket.data_lake.arn}/*"]
+    resources = ["${aws_s3_bucket.data_lake.arn}/${var.processed_prefix}*"]
   }
 }
 
