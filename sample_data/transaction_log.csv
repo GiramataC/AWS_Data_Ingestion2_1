@@ -1,0 +1,4 @@
+transaction_id,customer_id,type,amount,timestamp
+9001,1001,purchase,49.99,2023-01-10T14:22:00Z
+9002,1002,refund,-19.99,2023-02-16T09:05:00Z
+9003,1003,purchase,89.50,2023-03-30T18:47:00Z

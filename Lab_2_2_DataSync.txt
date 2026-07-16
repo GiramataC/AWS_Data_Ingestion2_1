@@ -1,0 +1,94 @@
+====================================================================
+Lab 2.2 - DataSync Batch Ingestion from On-Premises
+Region: eu-west-1 (Ireland)
+Account: <account-id> (redacted for public repo)
+Provisioned via: Terraform (this directory)
+====================================================================
+
+RESOURCE INVENTORY
+--------------------------------------------------------------------
+VPC (from Lab 1.2)             data-platform-vpc / vpc-0a695e147f03f6728
+Private subnet used            private-subnet-1b / subnet-08218dc0b8a2bbe2c
+Security group used             sg-private-compute / sg-0234e115b1f517a86
+EC2 test server                 datasync-test-server / i-0eccc892ef139afec (t3.micro)
+S3 data lake bucket             data-lake-prod-<account-id>
+  raw/                          source prefix (on-prem simulation)
+  processed/                    destination prefix
+IAM role                        DataSyncS3Role
+DataSync source location        onprem-s3-raw-location (loc-0e3f24ecb4d0cc19f)
+DataSync destination location   aws-s3-processed-location (loc-0cf553f893adc728b)
+DataSync task                   raw-to-processed-sync (task-0e87b7e67d70e0463)
+CloudWatch log group            /aws/datasync/raw-to-processed-sync
+CloudWatch alarm                datasync-raw-to-processed-task-failures
+SNS topic                       datasync-notifications
+SNS email subscription          <redacted for public repo>
+
+DEVIATION FROM LAB SPEC
+--------------------------------------------------------------------
+Instance type: lab spec calls for t2.micro. This account's AWS
+Organizations SCP (p-yb2lfviw) explicitly denies ec2:RunInstances for
+the t2 family. Confirmed via iterative --dry-run testing (subnet, AMI,
+and instance type were each isolated) - t2.micro is denied regardless
+of subnet/AMI, t3.micro is allowed. Used t3.micro instead; no other
+part of the pipeline is affected since DataSync's source and
+destination are both S3 (the EC2 box is only a stand-in for "on-prem"
+and isn't in the data path).
+
+EXECUTION 1 - INITIAL SYNC (Part 5/6)
+--------------------------------------------------------------------
+Task execution ARN   exec-0195bc91e01ffd25e
+Started               2026-07-15 16:12:52 CEST
+Total duration        8.0 sec  (prepare 1.6s / transfer 5.2s / verify 1.1s)
+Files transferred     3   (customer_master.csv, sales_history.csv, transaction_log.csv)
+Bytes transferred     563 bytes
+Files skipped         1   (raw/ folder marker, already present)
+Verify status         SUCCESS (POINT_IN_TIME_CONSISTENT)
+Destination check     All 3 CSVs confirmed present in s3://data-lake-prod-<account-id>/processed/
+
+EXECUTION 2 - INCREMENTAL SYNC (Part 7)
+--------------------------------------------------------------------
+Added file             new_customers.csv (103 bytes) uploaded to raw/
+Task execution ARN     exec-0800529d7ff311042
+Started                2026-07-16 11:18:30 CEST
+Total duration          3.3 sec (prepare 1.4s / transfer 0.8s / verify 1.1s)
+Files transferred       1   (new_customers.csv only)
+Bytes transferred       103 bytes
+Files skipped           4   (3 original CSVs + raw/ folder marker - all unchanged)
+Verify status           SUCCESS (POINT_IN_TIME_CONSISTENT)
+Destination check       new_customers.csv confirmed present in processed/, alongside the original 3
+
+Result: confirms incremental efficiency - DataSync only moved the
+single new/changed file rather than re-transferring the full data set.
+
+DATA SIZES
+--------------------------------------------------------------------
+Total data synced (both runs combined): 666 bytes (~0.65 KB)
+  customer_master.csv    224 bytes
+  sales_history.csv      153 bytes
+  transaction_log.csv    186 bytes
+  new_customers.csv      103 bytes
+
+VERIFICATION STATUS
+--------------------------------------------------------------------
+Both task executions: SUCCESS, data integrity verification: PASSED
+
+COST ESTIMATE
+--------------------------------------------------------------------
+DataSync task executions        negligible (<1 KB transferred, $0.0125/GB)
+S3 storage (raw/ + processed/)  negligible (<1 KB)
+CloudWatch log group / alarm    ~$0.10/month (alarm) + near-zero log storage
+SNS topic                       negligible (email is free tier)
+EC2 t3.micro (if left running)  ~$7.50/month (eu-west-1 on-demand, 730 hrs)
+EC2 t3.micro (terminated after lab)  ~$0.01 (few minutes of runtime)
+
+Recommendation: terminate the EC2 test server after the lab (see
+Teardown below) to keep monthly cost near $0.10 (alarm only). Leaving
+it running continuously is the dominant cost driver at ~$7.50/month.
+
+TEARDOWN (OPTIONAL)
+--------------------------------------------------------------------
+Set create_test_server = false in terraform.tfvars and re-apply to
+terminate the EC2 instance (~$7.50/month saved).
+Run `terraform destroy` to remove everything created by this config
+(does not touch Lab 1.2's VPC/networking, which lives in its own
+Terraform state under AWS_Lab1.2).

@@ -1,0 +1,4 @@
+sale_id,customer_id,product,amount,sale_date
+5001,1001,Widget A,49.99,2023-01-10
+5002,1002,Widget B,19.99,2023-02-14
+5003,1003,Widget C,89.50,2023-03-30

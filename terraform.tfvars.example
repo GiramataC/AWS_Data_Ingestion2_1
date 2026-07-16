@@ -1,0 +1,7 @@
+aws_region                  = "eu-west-1"
+vpc_name                    = "data-platform-vpc"
+private_subnet_name         = "private-subnet-1b"
+security_group_name         = "sg-private-compute"
+data_lake_bucket_name       = "" # leave blank to auto-generate data-lake-prod-<account_id>
+alarm_notification_email    = "you@example.com"
+enable_incremental_test_file = false
