@@ -8,8 +8,16 @@
 resource "aws_s3_bucket" "data_lake" {
   bucket = local.data_lake_bucket_name
 
+  # Environment/Owner/Purpose/CostCenter added in Lab 2.3 (S3 Data Lake
+  # Foundation hardening), applied here rather than var.tags since var.tags
+  # is shared with other Lab 2.2 resources (EC2, DataSync, SNS) that this
+  # tagging requirement doesn't apply to.
   tags = merge(var.tags, {
-    Name = local.data_lake_bucket_name
+    Name        = local.data_lake_bucket_name
+    Environment = "Production"
+    Owner       = "DataEngineering"
+    Purpose     = "DataLake"
+    CostCenter  = "Analytics"
   })
 }
 

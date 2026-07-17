@@ -26,3 +26,7 @@ terraform.rc
 
 # Saved plan files
 *.tfplan
+
+# Backend config contains account-specific bucket/table names
+backend.hcl
+!backend.hcl.example
