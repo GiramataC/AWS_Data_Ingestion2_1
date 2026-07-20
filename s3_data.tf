@@ -11,7 +11,7 @@ locals {
 resource "aws_s3_object" "raw_sample_files" {
   for_each = local.sample_files
 
-  bucket       = aws_s3_bucket.data_lake.id
+  bucket       = data.aws_s3_bucket.data_lake.id
   key          = "${var.raw_prefix}${each.key}"
   source       = "${path.module}/${each.value}"
   etag         = filemd5("${path.module}/${each.value}")
@@ -24,7 +24,7 @@ resource "aws_s3_object" "raw_sample_files" {
 resource "aws_s3_object" "incremental_test_file" {
   count = var.enable_incremental_test_file ? 1 : 0
 
-  bucket       = aws_s3_bucket.data_lake.id
+  bucket       = data.aws_s3_bucket.data_lake.id
   key          = "${var.raw_prefix}new_customers.csv"
   source       = "${path.module}/sample_data/new_customers.csv"
   etag         = filemd5("${path.module}/sample_data/new_customers.csv")

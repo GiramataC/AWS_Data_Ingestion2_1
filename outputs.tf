@@ -1,6 +1,6 @@
 output "data_lake_bucket_name" {
   description = "Name of the created data lake S3 bucket"
-  value       = aws_s3_bucket.data_lake.id
+  value       = data.aws_s3_bucket.data_lake.id
 }
 
 output "datasync_test_server_id" {

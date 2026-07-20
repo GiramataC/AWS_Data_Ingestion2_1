@@ -32,7 +32,7 @@ data "aws_iam_policy_document" "datasync_s3_access" {
       "s3:ListBucket",
       "s3:ListBucketMultipartUploads",
     ]
-    resources = [aws_s3_bucket.data_lake.arn]
+    resources = [data.aws_s3_bucket.data_lake.arn]
   }
 
   statement {
@@ -42,7 +42,7 @@ data "aws_iam_policy_document" "datasync_s3_access" {
       "s3:GetObject",
       "s3:GetObjectTagging",
     ]
-    resources = ["${aws_s3_bucket.data_lake.arn}/${var.raw_prefix}*"]
+    resources = ["${data.aws_s3_bucket.data_lake.arn}/${var.raw_prefix}*"]
   }
 
   statement {
@@ -57,7 +57,7 @@ data "aws_iam_policy_document" "datasync_s3_access" {
       "s3:PutObject",
       "s3:PutObjectTagging",
     ]
-    resources = ["${aws_s3_bucket.data_lake.arn}/${var.processed_prefix}*"]
+    resources = ["${data.aws_s3_bucket.data_lake.arn}/${var.processed_prefix}*"]
   }
 }
 

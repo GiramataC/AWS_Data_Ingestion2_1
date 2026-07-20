@@ -1,6 +1,6 @@
 # Part 2: source location - onprem-s3-raw-location
 resource "aws_datasync_location_s3" "onprem_raw" {
-  s3_bucket_arn = aws_s3_bucket.data_lake.arn
+  s3_bucket_arn = data.aws_s3_bucket.data_lake.arn
   subdirectory  = "/${var.raw_prefix}"
 
   s3_config {
@@ -16,7 +16,7 @@ resource "aws_datasync_location_s3" "onprem_raw" {
 
 # Part 3: destination location - aws-s3-processed-location
 resource "aws_datasync_location_s3" "aws_processed" {
-  s3_bucket_arn = aws_s3_bucket.data_lake.arn
+  s3_bucket_arn = data.aws_s3_bucket.data_lake.arn
   subdirectory  = "/${var.processed_prefix}"
 
   s3_config {
